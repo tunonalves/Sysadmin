@@ -1,33 +1,36 @@
 #!/bin/bash
 
-# Verifica si se está ejecutando como root
+# Verifica si el script se ejecuta como root
 if [[ $EUID -ne 0 ]]; then
    echo "Este script debe ejecutarse como root." 
    exit 1
 fi
 
-# Funciones
+# Función para crear un usuario
 crear_usuario() {
     read -p "Nombre del nuevo usuario: " usuario
     read -p "Directorio home (/home/$usuario): " home
     home=${home:-/home/$usuario}
-    useradd -m -d "$home" "$usuario"
-    passwd "$usuario"
+    useradd -m -d "$home" "$usuario"  # Crea usuario con home
+    passwd "$usuario"                 # Establece la contraseña
     echo "Usuario '$usuario' creado con directorio $home."
 }
 
+# Función para eliminar un usuario y su home
 eliminar_usuario() {
     read -p "Usuario a eliminar: " usuario
     userdel -r "$usuario"
     echo "Usuario '$usuario' eliminado."
 }
 
+# Función para crear un grupo
 crear_grupo() {
     read -p "Nombre del nuevo grupo: " grupo
     groupadd "$grupo"
     echo "Grupo '$grupo' creado."
 }
 
+# Agrega un usuario a un grupo existente
 agregar_usuario_grupo() {
     read -p "Usuario: " usuario
     read -p "Grupo: " grupo
@@ -35,12 +38,14 @@ agregar_usuario_grupo() {
     echo "Usuario '$usuario' agregado al grupo '$grupo'."
 }
 
+# Muestra información de un usuario
 ver_info_usuario() {
     read -p "Usuario: " usuario
     id "$usuario"
     getent passwd "$usuario"
 }
 
+# Cambia los permisos de un archivo o directorio
 cambiar_permisos() {
     read -p "Ruta del archivo/directorio: " archivo
     read -p "Nuevo modo (ej: 755): " modo
@@ -48,6 +53,7 @@ cambiar_permisos() {
     echo "Permisos cambiados a $modo para $archivo."
 }
 
+# Cambia el propietario de un archivo/directorio
 cambiar_propietario() {
     read -p "Ruta del archivo/directorio: " archivo
     read -p "Nuevo propietario (usuario:grupo): " propietario
@@ -55,7 +61,7 @@ cambiar_propietario() {
     echo "Propietario cambiado a $propietario en $archivo."
 }
 
-# Menú principal
+# Menú interactivo principal
 while true; do
     echo "------------------------------"
     echo "  Administración de Usuarios"
