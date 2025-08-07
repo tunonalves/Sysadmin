@@ -1,91 +1,96 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Script interactivo para administrar usuarios, grupos y permisos en Linux.
 
-# Verifica si el script se ejecuta como root
-if [[ $EUID -ne 0 ]]; then
-   echo "Este script debe ejecutarse como root." 
-   exit 1
+set -euo pipefail  # Configura el script para salir ante errores o variables no definidas.
+
+#--- Verificación de permisos ---
+if [[ $EUID -ne 0 ]]; then  # Comprueba si el UID es distinto de 0 (root)
+  echo "Este script debe ejecutarse como root."
+  exit 1
 fi
 
-# Función para crear un usuario
+#--- Función para crear un usuario ---
 crear_usuario() {
-    read -p "Nombre del nuevo usuario: " usuario
-    read -p "Directorio home (/home/$usuario): " home
-    home=${home:-/home/$usuario}
-    useradd -m -d "$home" "$usuario"  # Crea usuario con home
-    passwd "$usuario"                 # Establece la contraseña
-    echo "Usuario '$usuario' creado con directorio $home."
+  read -rp "Nombre del nuevo usuario: " usuario
+  read -rp "Directorio home (/home/$usuario): " home
+  home=${home:-/home/$usuario}  # Si no se ingresa ruta, se usa la predeterminada.
+  useradd -m -d "$home" -s /bin/bash "$usuario"  # Crea el usuario y su home.
+  passwd "$usuario"  # Pide contraseña para el usuario.
+  echo "Usuario '$usuario' creado con home '$home'."
 }
 
-# Función para eliminar un usuario y su home
+#--- Función para eliminar un usuario ---
 eliminar_usuario() {
-    read -p "Usuario a eliminar: " usuario
-    userdel -r "$usuario"
-    echo "Usuario '$usuario' eliminado."
+  read -rp "Usuario a eliminar: " usuario
+  userdel -r "$usuario"  # Elimina el usuario y su home.
+  echo "Usuario '$usuario' eliminado."
 }
 
-# Función para crear un grupo
+#--- Función para crear un grupo ---
 crear_grupo() {
-    read -p "Nombre del nuevo grupo: " grupo
-    groupadd "$grupo"
-    echo "Grupo '$grupo' creado."
+  read -rp "Nombre del nuevo grupo: " grupo
+  groupadd "$grupo"
+  echo "Grupo '$grupo' creado."
 }
 
-# Agrega un usuario a un grupo existente
+#--- Función para agregar usuario a un grupo ---
 agregar_usuario_grupo() {
-    read -p "Usuario: " usuario
-    read -p "Grupo: " grupo
-    usermod -aG "$grupo" "$usuario"
-    echo "Usuario '$usuario' agregado al grupo '$grupo'."
+  read -rp "Usuario: " usuario
+  read -rp "Grupo: " grupo
+  usermod -aG "$grupo" "$usuario"  # Añade usuario a un grupo sin quitar otros.
+  echo "Usuario '$usuario' agregado al grupo '$grupo'."
 }
 
-# Muestra información de un usuario
+#--- Función para ver información de un usuario ---
 ver_info_usuario() {
-    read -p "Usuario: " usuario
-    id "$usuario"
-    getent passwd "$usuario"
+  read -rp "Usuario: " usuario
+  id "$usuario" || true  # Muestra UID, GID y grupos del usuario.
+  getent passwd "$usuario" || true  # Muestra datos de /etc/passwd.
 }
 
-# Cambia los permisos de un archivo o directorio
+#--- Función para cambiar permisos ---
 cambiar_permisos() {
-    read -p "Ruta del archivo/directorio: " archivo
-    read -p "Nuevo modo (ej: 755): " modo
-    chmod "$modo" "$archivo"
-    echo "Permisos cambiados a $modo para $archivo."
+  read -rp "Ruta del archivo/directorio: " ruta
+  read -rp "Nuevo modo (ej: 755): " modo
+  chmod "$modo" "$ruta"  # Cambia permisos.
+  echo "Permisos de '$ruta' cambiados a $modo."
 }
 
-# Cambia el propietario de un archivo/directorio
+#--- Función para cambiar propietario ---
 cambiar_propietario() {
-    read -p "Ruta del archivo/directorio: " archivo
-    read -p "Nuevo propietario (usuario:grupo): " propietario
-    chown "$propietario" "$archivo"
-    echo "Propietario cambiado a $propietario en $archivo."
+  read -rp "Ruta del archivo/directorio: " ruta
+  read -rp "Nuevo propietario (usuario:grupo): " prop
+  chown "$prop" "$ruta"  # Cambia propietario y grupo.
+  echo "Propietario de '$ruta' cambiado a $prop."
 }
 
-# Menú interactivo principal
-while true; do
-    echo "------------------------------"
-    echo "  Administración de Usuarios"
-    echo "------------------------------"
-    echo "1) Crear usuario"
-    echo "2) Eliminar usuario"
-    echo "3) Crear grupo"
-    echo "4) Agregar usuario a grupo"
-    echo "5) Ver información de usuario"
-    echo "6) Cambiar permisos de archivo"
-    echo "7) Cambiar propietario de archivo"
-    echo "8) Salir"
-    echo "------------------------------"
-    read -p "Seleccione una opción [1-8]: " opcion
+#--- Menú principal ---
+while :; do
+  cat <<'MENU'
 
-    case $opcion in
-        1) crear_usuario ;;
-        2) eliminar_usuario ;;
-        3) crear_grupo ;;
-        4) agregar_usuario_grupo ;;
-        5) ver_info_usuario ;;
-        6) cambiar_permisos ;;
-        7) cambiar_propietario ;;
-        8) echo "Saliendo..."; break ;;
-        *) echo "Opción inválida" ;;
-    esac
+------------------------------
+   Administración de Linux
+------------------------------
+1) Crear usuario
+2) Eliminar usuario
+3) Crear grupo
+4) Agregar usuario a grupo
+5) Ver información de usuario
+6) Cambiar permisos de archivo
+7) Cambiar propietario de archivo
+8) Salir
+------------------------------
+MENU
+  read -rp "Seleccione una opción [1-8]: " op
+  case "$op" in
+    1) crear_usuario ;;
+    2) eliminar_usuario ;;
+    3) crear_grupo ;;
+    4) agregar_usuario_grupo ;;
+    5) ver_info_usuario ;;
+    6) cambiar_permisos ;;
+    7) cambiar_propietario ;;
+    8) echo "Saliendo..."; exit 0 ;;
+    *) echo "Opción inválida." ;;
+  esac
 done
