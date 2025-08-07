@@ -55,5 +55,5 @@ Este repositorio contiene una colección de **scripts en Bash y Python** diseña
 Clona el repositorio:
 
 ```bash
-git clone https://github.com/tuusuario/linux-admin-scripts.git
+git clone https://github.com/tunonalves/Sysadmin.git
 cd linux-admin-scripts
