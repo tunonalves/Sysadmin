@@ -4,21 +4,6 @@ Este repositorio contiene una colección de **scripts en Bash y Python** diseña
 
 ---
 
-## 📁 Estructura del repositorio
-
-├── bash/
-│ ├── admin_usuarios.sh
-│ ├── backup_home.sh
-│ └── monitoreo_recursos.sh
-├── python/
-│ ├── admin_usuarios.py
-│ ├── gestor_permisos.py
-│ └── usuarios_batch.py
-└── README.md
-
-
----
-
 ## 🚀 Funcionalidades destacadas
 
 ### 🧑‍💼 Gestión de usuarios y grupos
